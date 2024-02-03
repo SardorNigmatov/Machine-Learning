@@ -27,9 +27,6 @@ x_test = pd.DataFrame({
     'Yosh': [27, 32, 36, 50, 22, 28, 25, 26, 45, 37, 39, 52, 26, 66, 22, 43, 33, 63, 27, 30, 47, 23],
 })
 
-# Test ma'lumotlarini natijalarni bashorat qilish
-y_pred = model.predict(x_test)
-
 # Test ma'lumotlarini aniqlash
 y_pred = model.predict(x_test)
 print("Test natijalari:", y_pred)
@@ -60,6 +57,8 @@ plot_confusion_matrix(y_test, y_test_pred, classes=['Diabet yo\'q', 'Diabet bor'
 
 x_test_df = pd.DataFrame(x_test, columns=['Homiladorlik', 'Glyukoza', 'Qon Bosimi', 'Teri Qalinligi', 'Insulin', 'Tana Massa Indexsi', 'Qandli Diabetning Naslchilik Funktsiyasi', 'Yosh'])
 
+
+
 # 'Yosh' va 'Glyukoza' ustunlar bo'yicha scatter plot
 sns.scatterplot(data=x_test_df, x='Yosh', y='Glyukoza', hue=y_pred)
 plt.xlabel('Yosh')
@@ -68,3 +67,11 @@ plt.title('Glyukoza va Yosh ga bog\'liq')
 plt.show()
 
 
+
+test_value = list(map(float,input().split()))
+test_result = model.predict([test_value])
+print("Natija:")
+if test_result == [1]:
+    print("Diyabet bor!")
+else:
+    print("Diyabet yo'q")
