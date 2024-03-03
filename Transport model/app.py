@@ -16,7 +16,7 @@ file = st.file_uploader("Rasmni yuklash", type=['png', 'jpeg', 'svg','jfif'])
 if file:
     st.image(file)
 
-    # PIL convert
+    # PIL convert    D
     img = PILImage.create(file)
 
     # model

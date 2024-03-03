@@ -1,138 +1,70 @@
-import matplotlib.pyplot as plt
-import pandas as pd
-from sklearn.linear_model import LinearRegression
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 
-class SimpleLinearRegression:
-    """
-    Oddiy logistik regressiya
-    """
-    def __init__(self):
-        self.w = 0
-        self.b = 0
+def my_normalize(data):
+    """Normalizatsiya funksiyasi"""
+    return [(x - min(data)) / (max(data) - min(data)) for x in data]
+
+class LinearRegression:
+    """Linear Regression"""
+    def __init__(self, lr=0.01, n_iters=1000):
+        self.lr = lr
+        self.n_iters = n_iters
+        self.weights = None
+        self.bias = None
+        self.weights_history = []  # O'lchovlarni saqlash
+        self.bias_history = []     # Biasni saqlash
     
-    def predict(self, x):
-        """Bashorat qiliuvchi funksiya
-
-        Args:
-            x (_type_): erkli o'zgaruvchi
-
-        Returns:
-            _type_: erksiz o'zgaruvchining qiymatini qaytaradi
-        """
-        if isinstance(x, list):
-            return [self.w * float(xi) + self.b for xi in x]
-        else:
-            return self.w * float(x) + self.b
-    
-    def loss(self, x, y):
-        """Xatolikni hisoblochi funksiya
-
-        Args:
-            x (_type_): erksiz o'zgaruvchi 
-            y (_type_): erkli o'zgaruchi
-
-        Returns:
-            _type_: _description_
-        """
-        total_error = sum((y[i] - self.predict(x[i]))**2 for i in range(len(x)))
-        return total_error / len(x)
-    
-    def update_weights(self, x, y, lr):
-        """w va b ni yangilovchi funksiya
-
-        Args:
-            x (_type_): erkli o'zgaruchi
-            y (_type_): erksiz o'zgaruvchi
-            lr (_type_): o'qitish qadami
-        """
-        w_deriv = sum(-2 * float(x[i]) * (y[i] - self.predict(x[i])) for i in range(len(x)))
-        b_deriv = sum(-2 * (y[i] - self.predict(x[i])) for i in range(len(x)))
-        self.w -= (w_deriv / float(len(x))) * lr
-        self.b -= (b_deriv / float(len(x))) * lr
-
-    def train(self, x, y, lr,n,epsilon):
-        """Modelni train qilivuvchi funksiya
-
-        Args:
-            x (_type_): erkli o'zgaruvchi
-            y (_type_): erksiz o'zgaruvchi
-            lr (_type_): o'qitish qadami
-            n (_type_): iteratsiyalar soni
-
-        Returns:
-            _type_: w, loss, epoch
-        """
-        losses = []
-        weights = []
-        epoch = 1
+    def fit(self, X, y):
+        n_samples, n_features = X.shape
+        self.weights = np.zeros(n_features)
+        self.bias = 0
         
-        while epoch < n:
-            self.update_weights(x, y, lr)
-            current_loss = self.loss(x, y)
-            losses.append(current_loss)
-            weights.append(self.w)
-            epoch += 1
+        # Agar tushunchalarga o'xshagan bo'lmasa, xususiyatlarni normalizatsiya qilamiz
+        X_normalized = X if np.max(X) > 1 else np.array([my_normalize(X[:, i]) for i in range(n_features)]).T
+
+        for _ in range(self.n_iters):
+            y_pred = np.dot(X_normalized, self.weights) + self.bias
             
-            if current_loss < epsilon:
-                epoch += 1
-                return weights, losses, epoch
+            gradient_weights = (1/n_samples) * np.dot(X_normalized.T, (y_pred - y))
+            gradient_bias = (1/n_samples) * np.sum(y_pred - y)
             
+            self.weights = self.weights - self.lr * gradient_weights
+            self.bias = self.bias - self.lr * gradient_bias
             
-            
-        return weights, losses, epoch
-    
-linear = SimpleLinearRegression()
+            self.weights_history.append(self.weights.copy())
+            self.bias_history.append(self.bias)
 
-# Faydan datasetni o'qib oliyapmiz
-x_data = pd.read_csv("x_data.csv").iloc[:, 0].tolist()
-y_data = pd.read_csv("y_data.csv").iloc[:, 0].tolist()
+    def predict(self, X):
+        return np.dot(X, self.weights) + self.bias
 
-# print("x_data:",x_data)
-# print("y_data:",y_data)
+# Ma'lumotlar to'plamini olish va o'qish va test to'plamlarga bo'lish
+data = pd.read_csv("E:/Programming/Python/Practise/Machine learning/Linear Regression/Salary_Data.csv")  # Yo'lovchi yo'lini yangilang
+X = data[['YearsExperience']].values  # Agar ustun nomi 'YearsExperience' bo'lsa
+y = data['Salary'].values
 
-epsilon_value = float(input("Epsilon : "))
-lr = float(input("Learning rate:"))
-n = int(input("N="))
-weights, losses, epochs = linear.train(x_data, y_data, lr=lr,n=n,epsilon=epsilon_value)
-
-#Plot data points and the linear regression line
-plt.scatter(x_data, y_data, label="Ma'lumot nuqtalari")
-plt.plot(x_data, linear.predict(x_data), color='red', label='Linear Regression Line')
-plt.xlabel('X')
-plt.ylabel('Y')
-plt.legend()
-plt.title('Data Points and Linear Regression Line')
-plt.show()
-
-# Print final weight, bias, number of epochs, and a prediction example
-print("Function: y =", str(linear.w) + " x + " + str(linear.b))
-print("Weight:", linear.w)
-print("Bias:", linear.b)
-print("Number of epochs:", epochs)
-print("Bashorat: (x=1.5)",linear.predict(x=1.5))
-
-
-# X va y datasetni beryapmiz
-X = np.array(x_data).reshape(-1,1)
-y = np.array(y_data)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 model = LinearRegression()
+model.fit(X_train, y_train)
 
-# Modelni o'qitish
-model.fit(X, y)
+# Model koefitsiyentlari va MSE ni chiqarish
+print("Model Koefitsiyentalari:")
+print("O'lchovlar:", model.weights)
+print("Bias:", model.bias)
 
-# Modelni bashoratlash
-predictions = model.predict(X)
+bashoratlar = model.predict(X_test)
+mse = np.mean((y_test - bashoratlar) ** 2)
+print("Mean Squared Error:", mse)
 
-
-# Modelni chizish
-plt.scatter(X, y, color='green', label='Haqiqiy nuqtalar')
-plt.plot(X, predictions, color='red', label='Library Linear Regression')
-plt.plot(x_data, linear.predict(x_data), color='blue', label='My Linear Regression Line')
-plt.xlabel('X')
-plt.ylabel('y')
-plt.title('Linear Regression')
+# Chizish
+plt.scatter(X_train, y_train, color='red', s=20, label="O'qitish nuqtalari")
+plt.scatter(X_test, y_test, color='green', s=20, label="Sinov nuqtalari")
+plt.plot(X_test, bashoratlar, color='blue', linewidth=3, label='Bashorat')
+plt.title("Normalizatsiya Qilingan Linear Regression")
+plt.xlabel("Tajribali Yillar")
+plt.ylabel("Maosh")
 plt.legend()
 plt.show()
-

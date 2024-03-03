@@ -50,47 +50,6 @@ for row in standardized_data:
 
 
 
-import numpy as np
-
-def my_normalize(data):
-    min_vals = np.min(data, axis=0)
-    max_vals = np.max(data, axis=0)
-    normalized_data = (data - min_vals) / (max_vals - min_vals)
-    return normalized_data
-
-def my_standardize(data):
-    mean_vals = np.mean(data, axis=0)
-    std_devs = np.std(data, axis=0)
-    standardized_data = (data - mean_vals) / std_devs
-    return standardized_data
-
-# Ma'lumotlar tuzilishi
-data = np.array([[1.0, 2.0, 3.0],
-                 [4.0, 5.0, 6.0],
-                 [7.0, 8.0, 9.0]])
-
-# Normalizatsiya
-normalized_data = my_normalize(data)
-
-print("Normalizatsiya natijasi:")
-for row in normalized_data:
-    formatted_row = " ".join("{0:.3f}".format(val) for val in row)
-    print(formatted_row)
-
-# Standartlashtirish
-standardized_data = my_standardize(data)
-
-print("\nStandartlashtirish natijasi:")
-for row in standardized_data:
-    formatted_row = " ".join("{0:.3f}".format(val) for val in row)
-    print(formatted_row)
-
-
-
-
-
-
-
 
 
 
